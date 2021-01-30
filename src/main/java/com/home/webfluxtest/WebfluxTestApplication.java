@@ -2,6 +2,9 @@ package com.home.webfluxtest;
 
 import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,6 +16,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -81,6 +85,27 @@ public class WebfluxTestApplication {
             try { Thread.sleep(1000); } catch(Exception ex) { ex.printStackTrace();}
             return CompletableFuture.completedFuture(req + "/asyncwork");
         }
+    }
+
+    @RequestMapping("/hello")
+    public Publisher<String> hello(String name) {
+        return new Publisher<String>() {
+            @Override
+            public void subscribe(Subscriber<? super String> subscriber) {
+                subscriber.onSubscribe(new Subscription() {
+                    @Override
+                    public void request(long l) {
+                        subscriber.onNext("hello " + name);
+                        subscriber.onComplete();
+                    }
+
+                    @Override
+                    public void cancel() {
+
+                    }
+                });
+            }
+        };
     }
 }
 
